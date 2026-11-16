@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои Цели — Liquid Glass Wallpaper</title>
+  <style>
+    body { margin: 0; background: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    canvas { max-width: 100%; height: auto; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    .controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.9); padding: 12px 20px; border-radius: 16px; backdrop-filter: blur(10px); }
+    button { margin: 0 8px; padding: 10px 16px; border: none; border-radius: 12px; background: #007AFF; color: white; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <canvas id="wallpaper"></canvas>
+  <div class="controls">
+    <button onclick="generate('iphone')">iPhone 17 Pro</button>
+    <button onclick="generate('ipad')">iPad Pro 12.9</button>
+    <button onclick="download()">Скачать PNG</button>
+  </div>
+  <script>
+    const canvas = document.getElementById('wallpaper');
+    const ctx = canvas.getContext('2d');
+
+    function generate(device) {
+      if (device === 'iphone') {
+        canvas.width = 1206;
+        canvas.height = 2622;
+      } else {
+        canvas.width = 2048;
+        canvas.height = 2732;
+      }
+      drawWallpaper();
+    }
+
+    function drawWallpaper() {
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Background gradient (sky + water)
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#e8f4fc');
+      bg.addColorStop(0.4, '#d4e8f5');
+      bg.addColorStop(1, '#b8d4e8');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // Simple water reflection
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillRect(0, h * 0.55, w, h * 0.45);
+
+      // Date & Time
+      ctx.fillStyle = '#1a365d';
+      ctx.textAlign = 'center';
+      ctx.font = `bold ${Math.round(w * 0.04)}px -apple-system`;
+      const now = new Date();
+      const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+      const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+      ctx.fillText(`${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`, w/2, h * 0.12);
+
+      ctx.font = `bold ${Math.round(w * 0.14)}px -apple-system`;
+      ctx.fillText(now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}), w/2, h * 0.22);
+
+      // Cards
+      drawCard(w, h, 0.32, 'Закрытие дыр', 'Долги, кредиты, обязательства', 65, '#22c55e', '🛡');
+      drawCard(w, h, 0.52, 'Цели для жизни', 'Квартира, еда, налоги, билеты', 45, '#3b82f6', '🏠');
+      drawCard(w, h, 0.72, 'Цели мечты', 'Яхта, дом, Marina в Белграде', 0, '#f59e0b', '⭐', true);
+    }
+
+    function drawCard(w, h, yPercent, title, subtitle, percent, color, icon, locked = false) {
+      const cardW = w * 0.86;
+      const cardH = h * 0.16;
+      const x = (w - cardW) / 2;
+      const y = h * yPercent;
+
+      // Glass card
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(x, y, cardW, cardH, 28);
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Icon circle
+      ctx.beginPath();
+      ctx.arc(x + 50, y + 50, 28, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.fillStyle = 'white';
+      ctx.font = '24px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(icon, x + 50, y + 58);
+
+      // Text
+      ctx.fillStyle = '#1e293b';
+      ctx.textAlign = 'left';
+      ctx.font = `bold ${Math.round(w * 0.028)}px -apple-system`;
+      ctx.fillText(title, x + 100, y + 48);
+      ctx.font = `${Math.round(w * 0.018)}px -apple-system`;
+      ctx.fillStyle = '#64748b';
+      ctx.fillText(subtitle, x + 100, y + 78);
+
+      // Percent or lock
+      ctx.textAlign = 'right';
+      if (locked) {
+        ctx.font = '28px system-ui';
+        ctx.fillText('🔒', x + cardW - 40, y + 55);
+      } else {
+        ctx.font = `bold ${Math.round(w * 0.032)}px -apple-system`;
+        ctx.fillStyle = color;
+        ctx.fillText(percent + '%', x + cardW - 40, y + 55);
+      }
+
+      // Dots progress
+      const dots = 40;
+      const filled = Math.round(dots * percent / 100);
+      const dotSize = 8;
+      const gap = 6;
+      const startX = x + 40;
+      const dotsY = y + cardH - 40;
+      for (let i = 0; i < dots; i++) {
+        ctx.beginPath();
+        ctx.arc(startX + i * (dotSize + gap), dotsY, dotSize/2, 0, Math.PI*2);
+        ctx.fillStyle = i < filled ? color : 'rgba(0,0,0,0.12)';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function download() {
+      const link = document.createElement('a');
+      link.download = 'moi-celi-wallpaper.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Initial
+    generate('iphone');
+  </script>
+</body>
+</html>
